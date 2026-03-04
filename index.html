@@ -3,7 +3,7 @@
 <head>
   <title>Aircraft Videos</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f4f6f9; }
+    body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #f4f6f9, #e8edf3);}
     h1 { text-align: center; }
     .filters { display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 20px; }
     .filters div { display:flex; gap:10px; flex-wrap:wrap; }
@@ -11,6 +11,7 @@
     table { width: 100%; border-collapse: collapse; margin-top: 10px; background:white; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background: #007bff; color: white; }
+    th.sortable { cursor:pointer; }
     .month-group { margin-top: 30px; }
     button { cursor:pointer; }
     td.aircraft-cell { cursor:pointer; color: blue; text-decoration: underline; }
@@ -59,7 +60,8 @@
 <script>
 let videos = [];
 let filteredVideos = [];
-let quickFilteredAircraft = ""; // for toggle click filter
+let quickFilteredAircraft = "";
+const monthSortStates = {}; // Track sort per month
 
 // Convert YYYY-MM-DD to DD-MMM-YYYY
 function formatDate(dateStr) {
@@ -84,7 +86,7 @@ function loadVideos() {
     .catch(err => console.error("Failed to load videos:", err));
 }
 
-// Reload button function (forces fetch to bypass cache)
+// Reload button function
 function reloadVideos() {
   fetch('videos.json?' + new Date().getTime())
     .then(res => res.json())
@@ -109,7 +111,7 @@ function populateFilters() {
   });
 
   const aircraftFilter = document.getElementById('aircraftFilter');
-  aircraftFilter.innerHTML = '<option value="">All Aircraft</option>'; // reset
+  aircraftFilter.innerHTML = '<option value="">All Aircraft</option>';
   aircraftSet.forEach(a=>{
     const opt = document.createElement('option');
     opt.value = a;
@@ -118,7 +120,7 @@ function populateFilters() {
   });
 
   const yearFilter = document.getElementById('yearFilter');
-  yearFilter.innerHTML = '<option value="">All Years</option>'; // reset
+  yearFilter.innerHTML = '<option value="">All Years</option>';
   Array.from(yearSet).sort().forEach(y=>{
     const opt = document.createElement('option');
     opt.value = y;
@@ -154,10 +156,9 @@ function resetFilters() {
   renderVideos();
 }
 
-// Quick filter by clicking aircraft name (toggle)
+// Quick filter by clicking aircraft
 function quickFilterAircraft(name) {
   if(quickFilteredAircraft === name){
-    // clicked same aircraft → remove quick filter
     quickFilteredAircraft = "";
   } else {
     quickFilteredAircraft = name;
@@ -185,13 +186,17 @@ function renderVideos() {
     grouped[key].push(v);
   });
 
-  for(const key of Object.keys(grouped).sort((a,b)=>{
+  // Sort month groups descending
+  const monthKeys = Object.keys(grouped).sort((a,b)=>{
     const [m1,y1] = a.split('-').map(Number);
     const [m2,y2] = b.split('-').map(Number);
-    return new Date(y2,m2,1)-new Date(y1,m1,1); // descending
-  })){
+    return new Date(y2,m2,1)-new Date(y1,m1,1);
+  });
+
+  monthKeys.forEach(key=>{
     const [month, year] = key.split('-');
     const monthName = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][month];
+
     const monthDiv = document.createElement('div');
     monthDiv.className = 'month-group';
     monthDiv.innerHTML = `<h2>${monthName} ${year}</h2>`;
@@ -201,7 +206,9 @@ function renderVideos() {
       <thead>
         <tr>
           <th>Aircraft</th>
-          <th>Date</th>
+          <th class="sortable" style="cursor:pointer" onclick="sortMonthTable('${key}')">
+            Date <span id="sortArrow-${key}">↓</span>
+          </th>
           <th>Description</th>
           <th>Watch</th>
         </tr>
@@ -219,13 +226,37 @@ function renderVideos() {
     `;
     monthDiv.appendChild(table);
     container.appendChild(monthDiv);
-  }
+  });
+}
+
+// Sort videos within a single month table
+function sortMonthTable(monthKey) {
+  const table = Array.from(document.querySelectorAll('.month-group')).find(div=>{
+    return div.querySelector('h2').innerText.includes(monthKey.split('-')[1]);
+  })?.querySelector('table tbody');
+
+  if(!table) return;
+
+  let rows = Array.from(table.querySelectorAll('tr'));
+
+  // Toggle sort
+  monthSortStates[monthKey] = !monthSortStates[monthKey];
+  const ascending = monthSortStates[monthKey];
+
+  rows.sort((a,b)=>{
+    const dateA = new Date(a.cells[1].innerText);
+    const dateB = new Date(b.cells[1].innerText);
+    return ascending ? dateA - dateB : dateB - dateA;
+  });
+
+  rows.forEach(r=>table.appendChild(r));
+
+  const arrow = document.getElementById(`sortArrow-${monthKey}`);
+  if(arrow) arrow.innerText = ascending ? '↑' : '↓';
 }
 
 loadVideos();
 </script>
-
-<body>
 
 <p style="
   position: absolute;
@@ -248,7 +279,6 @@ loadVideos();
 }
 </style>
 
-<!-- Bottom-left small italic -->
 <p style="
   position: absolute;
   bottom: 10px;
@@ -263,5 +293,3 @@ loadVideos();
 
 </body>
 </html>
-
-
