@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Aircraft Videos</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f6f9; }
+    h1 { text-align: center; }
+    .filters { margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap; }
+    select, input { padding:5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background:white; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #007bff; color: white; }
+    .month-group { margin-top: 30px; }
+    button { padding:5px 10px; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<h1>✈ Aircraft Videos</h1>
+
+<div class="filters">
+  <select id="aircraftFilter">
+    <option value="">All Aircraft</option>
+  </select>
+  <select id="monthFilter">
+    <option value="">All Months</option>
+    <option value="0">January</option>
+    <option value="1">February</option>
+    <option value="2">March</option>
+    <option value="3">April</option>
+    <option value="4">May</option>
+    <option value="5">June</option>
+    <option value="6">July</option>
+    <option value="7">August</option>
+    <option value="8">September</option>
+    <option value="9">October</option>
+    <option value="10">November</option>
+    <option value="11">December</option>
+  </select>
+  <select id="yearFilter">
+    <option value="">All Years</option>
+  </select>
+  <button onclick="applyFilters()">Apply Filters</button>
+  <button onclick="resetFilters()">Reset</button>
+</div>
+
+<div id="videoContainer">
+  <!-- Videos will appear here grouped by month -->
+</div>
+
+<script>
+let videos = [];
+let filteredVideos = [];
+
+function loadVideos() {
+  fetch('videos.json')
+    .then(res => res.json())
+    .then(data => {
+      videos = data;
+      filteredVideos = [...videos];
+      populateFilters();
+      renderVideos();
+    });
+}
+
+function populateFilters() {
+  const aircraftSet = new Set();
+  const yearSet = new Set();
+  videos.forEach(v=>{
+    aircraftSet.add(v.aircraft);
+    const year = new Date(v.date).getFullYear();
+    yearSet.add(year);
+  });
+
+  const aircraftFilter = document.getElementById('aircraftFilter');
+  aircraftSet.forEach(a=>{
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.innerText = a;
+    aircraftFilter.appendChild(opt);
+  });
+
+  const yearFilter = document.getElementById('yearFilter');
+  Array.from(yearSet).sort().forEach(y=>{
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.innerText = y;
+    yearFilter.appendChild(opt);
+  });
+}
+
+function applyFilters() {
+  const aircraft = document.getElementById('aircraftFilter').value;
+  const month = document.getElementById('monthFilter').value;
+  const year = document.getElementById('yearFilter').value;
+
+  filteredVideos = videos.filter(v=>{
+    const d = new Date(v.date);
+    if(aircraft && v.aircraft !== aircraft) return false;
+    if(month && d.getMonth() != month) return false;
+    if(year && d.getFullYear() != year) return false;
+    return true;
+  });
+
+  renderVideos();
+}
+
+function resetFilters() {
+  document.getElementById('aircraftFilter').value = '';
+  document.getElementById('monthFilter').value = '';
+  document.getElementById('yearFilter').value = '';
+  filteredVideos = [...videos];
+  renderVideos();
+}
+
+function renderVideos() {
+  const container = document.getElementById('videoContainer');
+  container.innerHTML = '';
+
+  if(filteredVideos.length===0){
+    container.innerHTML = "<p>No videos found.</p>";
+    return;
+  }
+
+  // Group by month & year
+  const grouped = {};
+  filteredVideos.forEach(v=>{
+    const d = new Date(v.date);
+    const key = `${d.getMonth()}-${d.getFullYear()}`;
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push(v);
+  });
+
+  for(const key of Object.keys(grouped).sort((a,b)=>{
+    const [m1,y1] = a.split('-').map(Number);
+    const [m2,y2] = b.split('-').map(Number);
+    return new Date(y2,m2,1)-new Date(y1,m1,1); // descending
+  })){
+    const [month, year] = key.split('-');
+    const monthName = ["January","February","March","April","May","June","July","August","September","October","November","December"][month];
+    const monthDiv = document.createElement('div');
+    monthDiv.className = 'month-group';
+    monthDiv.innerHTML = `<h2>${monthName} ${year}</h2>`;
+
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Aircraft</th>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Watch</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${grouped[key].map(v=>{
+          return `<tr>
+            <td>${v.aircraft}</td>
+            <td>${v.date}</td>
+            <td>${v.description}</td>
+            <td><button onclick="window.open('${v.link}','_blank')">Watch</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    `;
+    monthDiv.appendChild(table);
+    container.appendChild(monthDiv);
+  }
+}
+
+loadVideos();
+</script>
+
+</body>
+</html>
