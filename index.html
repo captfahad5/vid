@@ -59,6 +59,7 @@
 <script>
 let videos = [];
 let filteredVideos = [];
+let quickFilteredAircraft = ""; // for toggle click filter
 
 // Convert YYYY-MM-DD to DD-MMM-YYYY
 function formatDate(dateStr) {
@@ -148,13 +149,20 @@ function resetFilters() {
   document.getElementById('aircraftFilter').value = '';
   document.getElementById('monthFilter').value = '';
   document.getElementById('yearFilter').value = '';
+  quickFilteredAircraft = "";
   filteredVideos = [...videos];
   renderVideos();
 }
 
-// Quick filter by clicking aircraft name
+// Quick filter by clicking aircraft name (toggle)
 function quickFilterAircraft(name) {
-  document.getElementById('aircraftFilter').value = name;
+  if(quickFilteredAircraft === name){
+    // clicked same aircraft → remove quick filter
+    quickFilteredAircraft = "";
+  } else {
+    quickFilteredAircraft = name;
+  }
+  document.getElementById('aircraftFilter').value = quickFilteredAircraft;
   applyFilters();
 }
 
