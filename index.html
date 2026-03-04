@@ -6,49 +6,42 @@
     body { font-family: Arial; padding: 20px; background: #f4f6f9; }
     h1 { text-align: center; }
     .filters { margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap; }
-    select, input, button { padding:5px; }
+    select, input { padding:5px; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; background:white; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background: #007bff; color: white; }
     .month-group { margin-top: 30px; }
-    button { cursor:pointer; }
-    .refresh-btn { margin-bottom: 10px; }
+    button { padding:5px 10px; cursor:pointer; }
   </style>
 </head>
 <body>
 
 <h1>✈ Aircraft Videos</h1>
 
-<div class="filters" style="display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap;">
-  <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <select id="aircraftFilter">
-      <option value="">All Aircraft</option>
-    </select>
-    <select id="monthFilter">
-      <option value="">All Months</option>
-      <option value="0">January</option>
-      <option value="1">February</option>
-      <option value="2">March</option>
-      <option value="3">April</option>
-      <option value="4">May</option>
-      <option value="5">June</option>
-      <option value="6">July</option>
-      <option value="7">August</option>
-      <option value="8">September</option>
-      <option value="9">October</option>
-      <option value="10">November</option>
-      <option value="11">December</option>
-    </select>
-    <select id="yearFilter">
-      <option value="">All Years</option>
-    </select>
-    <button onclick="applyFilters()">Apply Filters</button>
-    <button onclick="resetFilters()">Reset</button>
-  </div>
-
-  <div>
-    <button onclick="reloadVideos()">🔄 Refresh</button>
-  </div>
+<div class="filters">
+  <select id="aircraftFilter">
+    <option value="">All Aircraft</option>
+  </select>
+  <select id="monthFilter">
+    <option value="">All Months</option>
+    <option value="0">January</option>
+    <option value="1">February</option>
+    <option value="2">March</option>
+    <option value="3">April</option>
+    <option value="4">May</option>
+    <option value="5">June</option>
+    <option value="6">July</option>
+    <option value="7">August</option>
+    <option value="8">September</option>
+    <option value="9">October</option>
+    <option value="10">November</option>
+    <option value="11">December</option>
+  </select>
+  <select id="yearFilter">
+    <option value="">All Years</option>
+  </select>
+  <button onclick="applyFilters()">Apply Filters</button>
+  <button onclick="resetFilters()">Reset</button>
 </div>
 
 <div id="videoContainer">
@@ -59,16 +52,6 @@
 let videos = [];
 let filteredVideos = [];
 
-// Convert YYYY-MM-DD to DD-MMM-YYYY
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2,'0');
-  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const month = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-}
-
 function loadVideos() {
   fetch('videos.json')
     .then(res => res.json())
@@ -77,17 +60,6 @@ function loadVideos() {
       filteredVideos = [...videos];
       populateFilters();
       renderVideos();
-    });
-}
-
-function reloadVideos() {
-  fetch('videos.json?' + new Date().getTime()) // prevent cache
-    .then(res => res.json())
-    .then(data => {
-      videos = data;
-      filteredVideos = [...videos];
-      renderVideos();
-      console.log("Videos refreshed!");
     });
 }
 
@@ -165,7 +137,7 @@ function renderVideos() {
     return new Date(y2,m2,1)-new Date(y1,m1,1); // descending
   })){
     const [month, year] = key.split('-');
-    const monthName = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][month];
+    const monthName = ["January","February","March","April","May","June","July","August","September","October","November","December"][month];
     const monthDiv = document.createElement('div');
     monthDiv.className = 'month-group';
     monthDiv.innerHTML = `<h2>${monthName} ${year}</h2>`;
@@ -184,7 +156,7 @@ function renderVideos() {
         ${grouped[key].map(v=>{
           return `<tr>
             <td>${v.aircraft}</td>
-            <td>${formatDate(v.date)}</td>
+            <td>${v.date}</td>
             <td>${v.description}</td>
             <td><button onclick="window.open('${v.link}','_blank')">Watch</button></td>
           </tr>`;
