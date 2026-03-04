@@ -13,6 +13,7 @@
     th { background: #007bff; color: white; }
     .month-group { margin-top: 30px; }
     button { cursor:pointer; }
+    td.aircraft-cell { cursor:pointer; color: blue; text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -151,6 +152,12 @@ function resetFilters() {
   renderVideos();
 }
 
+// Quick filter by clicking aircraft name
+function quickFilterAircraft(name) {
+  document.getElementById('aircraftFilter').value = name;
+  applyFilters();
+}
+
 // Render videos grouped by month/year
 function renderVideos() {
   const container = document.getElementById('videoContainer');
@@ -194,7 +201,7 @@ function renderVideos() {
       <tbody>
         ${grouped[key].map(v=>{
           return `<tr>
-            <td>${v.aircraft}</td>
+            <td class="aircraft-cell" onclick="quickFilterAircraft('${v.aircraft}')">${v.aircraft}</td>
             <td>${formatDate(v.date)}</td>
             <td>${v.description}</td>
             <td><button onclick="window.open('${v.link}','_blank')">Watch</button></td>
