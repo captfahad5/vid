@@ -1,8 +1,29 @@
 [
   {
+    "aircraft": "Upholster Shop",
+    "date": "2026-01-28",
+    "description": "TIME 11 AM (VIDEO WITH EDITING TIME REUIRED 1.2 HRS)",
+    "link": "https://youtu.be/XbuRxA8GzJ4",
+    "highlighted": false
+  },
+  {
+    "aircraft": "Cobalt",
+    "date": "2025-08-20",
+    "description": "Cobalt Spectrum LED made single handedly from production to editing in just 3 days urgent basis! during storm days (Time to make 37 HRS) project of Salman Ghori | Made by Capt.Fahad ",
+    "link": "https://youtu.be/EKMoj1hOsMk",
+    "highlighted": true
+  },
+  {
+    "aircraft": "Cabin Maint Overall",
+    "date": "2026-01-27",
+    "description": "Premium! Cabin Manit Overall video with AI voiceover made for PIACHL Visit to be played in Seat Shop (time to make 5 HRS)",
+    "link": "https://youtu.be/z2poUfL_TKE",
+    "highlighted": true
+  },
+  {
     "aircraft": "AP-BHX",
     "date": "2026-03-05",
-    "description": "TIME 5:30 AM (VIDEO WITH EDITING TIME REUIRED 4 HRS)",
+    "description": "TIME 5:30 AM (VIDEO WITH EDITING TIME REUIRED 4 HRS) ",
     "link": "https://youtu.be/wDBY9p-FBTA",
     "highlighted": false
   },
