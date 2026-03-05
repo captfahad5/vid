@@ -22,6 +22,13 @@
       border: 2px solid gold;
       box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
       font-weight: bold;
+      transition: box-shadow 0.5s ease, transform 0.3s ease;
+    }
+
+    /* Hover pulse effect for highlighted rows */
+    .highlight:hover {
+      box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.6);
+      transform: scale(1.02);
     }
   </style>
 </head>
@@ -212,7 +219,6 @@ function renderVideos() {
       </thead>
       <tbody>
         ${grouped[key].map(v=>{
-          // ✅ robust check for boolean or string "true"
           const isHighlight = (v.highlighted === true || v.highlighted === 'true');
           return `<tr class="${isHighlight ? 'highlight' : ''}">
             <td class="aircraft-cell" onclick="quickFilterAircraft('${v.aircraft}')">${v.aircraft}</td>
