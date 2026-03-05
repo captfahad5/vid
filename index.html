@@ -3,7 +3,7 @@
 <head>
   <title>Aircraft Videos</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #f4f6f9, #e8edf3); }
+    body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #f4f6f9, #e8edf3);}
     h1 { text-align: center; }
     .filters { display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 20px; }
     .filters div { display:flex; gap:10px; flex-wrap:wrap; }
@@ -16,17 +16,19 @@
     button { cursor:pointer; }
     td.aircraft-cell { cursor:pointer; color: blue; text-decoration: underline; }
 
-    /* Highlighted videos with slow pulsing orange background */
-    .highlight td { 
-      background: #ffa500; /* base orange */
+    /* Highlight special videos with glowing gold effect */
+    .highlight { 
+      background: #fff7c0 !important; 
+      border: 2px solid gold;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
       font-weight: bold;
-      animation: pulseHighlight 4s ease-in-out infinite; /* 4-second pulse */
+      transition: box-shadow 0.5s ease, transform 0.3s ease;
     }
 
-    @keyframes pulseHighlight {
-      0% { background-color: #ffa500; }
-      50% { background-color: #ffffff; }
-      100% { background-color: #ffa500; }
+    /* Hover pulse effect for highlighted rows */
+    .highlight:hover {
+      box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.6);
+      transform: scale(1.02);
     }
   </style>
 </head>
@@ -59,8 +61,6 @@
     </select>
     <button onclick="applyFilters()">Apply Filters</button>
     <button onclick="resetFilters()">Reset</button>
-    <!-- New button to show only highlighted videos -->
-    <button onclick="filterHighlighted()">Highlighted</button>
   </div>
 
   <div>
@@ -161,11 +161,6 @@ function resetFilters() {
   document.getElementById('yearFilter').value = '';
   quickFilteredAircraft = "";
   filteredVideos = [...videos];
-  renderVideos();
-}
-
-function filterHighlighted() {
-  filteredVideos = videos.filter(v => v.highlighted === true || v.highlighted === 'true');
   renderVideos();
 }
 
@@ -286,14 +281,13 @@ loadVideos();
 </style>
 
 <p style="
-  position: fixed;
+  position: absolute;
   bottom: 10px;
   left: 20px;
   font-size: 12px;
   font-style: italic;
   color: #555;
   margin: 0;
-  z-index: 9999;
 ">
  Capt Fahad AI Master 💻
 </p>
