@@ -26,6 +26,7 @@
     <select id="aircraftFilter">
       <option value="">All Aircraft</option>
     </select>
+
     <select id="monthFilter">
       <option value="">All Months</option>
       <option value="0">January</option>
@@ -41,9 +42,11 @@
       <option value="10">November</option>
       <option value="11">December</option>
     </select>
+
     <select id="yearFilter">
       <option value="">All Years</option>
     </select>
+
     <button onclick="applyFilters()">Apply Filters</button>
     <button onclick="resetFilters()">Reset</button>
   </div>
@@ -53,27 +56,31 @@
   </div>
 </div>
 
-<div id="videoContainer">
-  <!-- Videos will appear here grouped by month -->
-</div>
+<div id="videoContainer"></div>
 
 <script>
+
 let videos = [];
 let filteredVideos = [];
 let quickFilteredAircraft = "";
-const monthSortStates = {}; // Track sort per month
+const monthSortStates = {};
 
-// Convert YYYY-MM-DD to DD-MMM-YYYY
+
+// FIXED DATE FORMAT (NO TIMEZONE BUG)
 function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2,'0');
+
+  const parts = dateStr.split("-");
+  const year = parts[0];
+  const monthIndex = parseInt(parts[1]) - 1;
+  const day = parts[2];
+
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const month = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
+
+  return `${day}-${monthNames[monthIndex]}-${year}`;
 }
 
-// Initial load
+
+
 function loadVideos() {
   fetch('videos.json')
     .then(res => res.json())
@@ -86,7 +93,8 @@ function loadVideos() {
     .catch(err => console.error("Failed to load videos:", err));
 }
 
-// Reload button function
+
+
 function reloadVideos() {
   fetch('videos.json?' + new Date().getTime())
     .then(res => res.json())
@@ -100,18 +108,23 @@ function reloadVideos() {
     .catch(err => console.error("Failed to reload videos:", err));
 }
 
-// Populate filter dropdowns
+
+
 function populateFilters() {
+
   const aircraftSet = new Set();
   const yearSet = new Set();
+
   videos.forEach(v=>{
     aircraftSet.add(v.aircraft);
-    const year = new Date(v.date).getFullYear();
+    const year = v.date.split("-")[0];
     yearSet.add(year);
   });
 
+
   const aircraftFilter = document.getElementById('aircraftFilter');
   aircraftFilter.innerHTML = '<option value="">All Aircraft</option>';
+
   aircraftSet.forEach(a=>{
     const opt = document.createElement('option');
     opt.value = a;
@@ -119,57 +132,83 @@ function populateFilters() {
     aircraftFilter.appendChild(opt);
   });
 
+
   const yearFilter = document.getElementById('yearFilter');
   yearFilter.innerHTML = '<option value="">All Years</option>';
+
   Array.from(yearSet).sort().forEach(y=>{
     const opt = document.createElement('option');
     opt.value = y;
     opt.innerText = y;
     yearFilter.appendChild(opt);
   });
+
 }
 
-// Apply filters
+
+
 function applyFilters() {
+
   const aircraft = document.getElementById('aircraftFilter').value;
   const month = document.getElementById('monthFilter').value;
   const year = document.getElementById('yearFilter').value;
 
   filteredVideos = videos.filter(v=>{
-    const d = new Date(v.date);
+
+    const parts = v.date.split("-");
+    const y = parts[0];
+    const m = parseInt(parts[1]) - 1;
+
     if(aircraft && v.aircraft !== aircraft) return false;
-    if(month && d.getMonth() != month) return false;
-    if(year && d.getFullYear() != year) return false;
+    if(month && m != month) return false;
+    if(year && y != year) return false;
+
     return true;
+
   });
 
   renderVideos();
+
 }
 
-// Reset filters
+
+
 function resetFilters() {
+
   document.getElementById('aircraftFilter').value = '';
   document.getElementById('monthFilter').value = '';
   document.getElementById('yearFilter').value = '';
+
   quickFilteredAircraft = "";
+
   filteredVideos = [...videos];
+
   renderVideos();
+
 }
 
-// Quick filter by clicking aircraft
+
+
 function quickFilterAircraft(name) {
+
   if(quickFilteredAircraft === name){
     quickFilteredAircraft = "";
   } else {
     quickFilteredAircraft = name;
   }
+
   document.getElementById('aircraftFilter').value = quickFilteredAircraft;
+
   applyFilters();
+
 }
 
-// Render videos grouped by month/year
+
+
 function renderVideos() {
+
   const container = document.getElementById('videoContainer');
+
   container.innerHTML = '';
 
   if(filteredVideos.length===0){
@@ -177,86 +216,138 @@ function renderVideos() {
     return;
   }
 
-  // Group by month & year
+
   const grouped = {};
+
   filteredVideos.forEach(v=>{
-    const d = new Date(v.date);
-    const key = `${d.getMonth()}-${d.getFullYear()}`;
+
+    const parts = v.date.split("-");
+    const year = parts[0];
+    const month = parseInt(parts[1]) - 1;
+
+    const key = `${month}-${year}`;
+
     if(!grouped[key]) grouped[key] = [];
+
     grouped[key].push(v);
+
   });
 
-  // Sort month groups descending
+
+
   const monthKeys = Object.keys(grouped).sort((a,b)=>{
+
     const [m1,y1] = a.split('-').map(Number);
     const [m2,y2] = b.split('-').map(Number);
+
     return new Date(y2,m2,1)-new Date(y1,m1,1);
+
   });
 
+
+
   monthKeys.forEach(key=>{
+
     const [month, year] = key.split('-');
+
     const monthName = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][month];
 
     const monthDiv = document.createElement('div');
+
     monthDiv.className = 'month-group';
+
     monthDiv.innerHTML = `<h2>${monthName} ${year}</h2>`;
 
+
     const table = document.createElement('table');
+
     table.innerHTML = `
       <thead>
         <tr>
           <th>Aircraft</th>
-          <th class="sortable" style="cursor:pointer" onclick="sortMonthTable('${key}')">
+          <th class="sortable" onclick="sortMonthTable('${key}')">
             Date <span id="sortArrow-${key}">↓</span>
           </th>
           <th>Description</th>
           <th>Watch</th>
         </tr>
       </thead>
+
       <tbody>
+
         ${grouped[key].map(v=>{
+
           return `<tr>
+
             <td class="aircraft-cell" onclick="quickFilterAircraft('${v.aircraft}')">${v.aircraft}</td>
+
             <td>${formatDate(v.date)}</td>
+
             <td>${v.description}</td>
+
             <td><button onclick="window.open('${v.link}','_blank')">Watch</button></td>
+
           </tr>`;
+
         }).join('')}
+
       </tbody>
+
     `;
+
     monthDiv.appendChild(table);
+
     container.appendChild(monthDiv);
+
   });
+
 }
 
-// Sort videos within a single month table
+
+
 function sortMonthTable(monthKey) {
-  const table = Array.from(document.querySelectorAll('.month-group')).find(div=>{
-    return div.querySelector('h2').innerText.includes(monthKey.split('-')[1]);
-  })?.querySelector('table tbody');
 
-  if(!table) return;
+  const tables = document.querySelectorAll('.month-group');
 
-  let rows = Array.from(table.querySelectorAll('tr'));
+  tables.forEach(div=>{
 
-  // Toggle sort
-  monthSortStates[monthKey] = !monthSortStates[monthKey];
-  const ascending = monthSortStates[monthKey];
+    if(div.innerHTML.includes(monthKey.split('-')[1])){
 
-  rows.sort((a,b)=>{
-    const dateA = new Date(a.cells[1].innerText);
-    const dateB = new Date(b.cells[1].innerText);
-    return ascending ? dateA - dateB : dateB - dateA;
+      const table = div.querySelector('tbody');
+
+      let rows = Array.from(table.querySelectorAll('tr'));
+
+      monthSortStates[monthKey] = !monthSortStates[monthKey];
+
+      const ascending = monthSortStates[monthKey];
+
+      rows.sort((a,b)=>{
+
+        const dateA = new Date(a.cells[1].innerText);
+        const dateB = new Date(b.cells[1].innerText);
+
+        return ascending ? dateA - dateB : dateB - dateA;
+
+      });
+
+      rows.forEach(r=>table.appendChild(r));
+
+      const arrow = document.getElementById(`sortArrow-${monthKey}`);
+
+      if(arrow) arrow.innerText = ascending ? '↑' : '↓';
+
+    }
+
   });
 
-  rows.forEach(r=>table.appendChild(r));
-
-  const arrow = document.getElementById(`sortArrow-${monthKey}`);
-  if(arrow) arrow.innerText = ascending ? '↑' : '↓';
 }
+
+
 
 loadVideos();
+
 </script>
+
 
 <p style="
   position: absolute;
@@ -272,12 +363,14 @@ loadVideos();
   Made By Capt Fahad ✈ | Powered By AI 💻
 </p>
 
+
 <style>
 @keyframes bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
+  0%,100% { transform: translateX(-50%) translateY(0); }
   50% { transform: translateX(-50%) translateY(-5px); }
 }
 </style>
+
 
 <p style="
   position: absolute;
