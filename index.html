@@ -1,5 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Aircraft Videos</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #f4f6f9, #e8edf3);}
+    h1 { text-align: center; }
+    .filters { display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 20px; }
+    .filters div { display:flex; gap:10px; flex-wrap:wrap; }
+    select, input, button { padding:5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background:white; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #007bff; color: white; }
+    th.sortable { cursor:pointer; }
+    .month-group { margin-top: 30px; }
+    button { cursor:pointer; }
+    td.aircraft-cell { cursor:pointer; color: blue; text-decoration: underline; }
+
+    /* Highlight special videos with glowing gold effect */
+    .highlight { 
+      background: #fff7c0 !important; 
+      border: 2px solid gold;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+      font-weight: bold;
+      transition: box-shadow 0.5s ease, transform 0.3s ease;
+    }
+
+    /* Hover pulse effect for highlighted rows */
+    .highlight:hover {
+      box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.6);
+      transform: scale(1.02);
+    }
+
+    /* Bottom-left fixed AI text with glowing pulse */
+    #bottomAI {
+      position: fixed;
+      bottom: 10px;
+      left: 20px;
+      font-size: 12px;
+      font-style: italic;
+      color: #555;
+      margin: 0;
+      transition: all 0.6s ease;
+      animation: glowPulse 2s infinite alternate;
+      z-index: 1000;
+    }
+
+    @keyframes glowPulse {
+      0% { text-shadow: 0 0 2px rgba(255, 215, 0, 0.4); }
+      50% { text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); }
+      100% { text-shadow: 0 0 2px rgba(255, 215, 0, 0.4); }
+    }
+  </style>
+</head>
+<body>
+
+<h1>✈ Aircraft Videos</h1>
+
 <div class="filters">
-  <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+  <div>
     <select id="aircraftFilter">
       <option value="">All Aircraft</option>
     </select>
@@ -23,15 +81,236 @@
     </select>
     <button onclick="applyFilters()">Apply Filters</button>
     <button onclick="resetFilters()">Reset</button>
-
-    <!-- ✅ Highlight checkbox nicely aligned -->
-    <label style="display:flex; align-items:center; gap:5px; font-size:14px; margin-left:5px;">
-      <input type="checkbox" id="highlightFilter">
-      Show Only Highlighted
-    </label>
   </div>
 
   <div>
     <button onclick="reloadVideos()">🔄 Refresh</button>
   </div>
 </div>
+
+<div id="videoContainer">
+  <!-- Videos will appear here grouped by month -->
+</div>
+
+<script>
+let videos = [];
+let filteredVideos = [];
+let quickFilteredAircraft = "";
+const monthSortStates = {};
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2,'0');
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const month = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+// Load videos from JSON with cache-busting
+function loadVideos() {
+  fetch('videos.json?' + new Date().getTime())
+    .then(res => res.json())
+    .then(data => {
+      videos = data;
+      filteredVideos = [...videos];
+      populateFilters();
+      renderVideos();
+    })
+    .catch(err => console.error("Failed to load videos:", err));
+}
+
+// Refresh button fetch with cache-busting
+function reloadVideos() {
+  fetch('videos.json?' + new Date().getTime())
+    .then(res => res.json())
+    .then(data => {
+      videos = data;
+      filteredVideos = [...videos];
+      populateFilters();
+      renderVideos();
+      console.log("Videos refreshed!");
+    })
+    .catch(err => console.error("Failed to reload videos:", err));
+}
+
+// Populate filter dropdowns
+function populateFilters() {
+  const aircraftSet = new Set();
+  const yearSet = new Set();
+  videos.forEach(v=>{
+    aircraftSet.add(v.aircraft);
+    yearSet.add(new Date(v.date).getFullYear());
+  });
+
+  const aircraftFilter = document.getElementById('aircraftFilter');
+  aircraftFilter.innerHTML = '<option value="">All Aircraft</option>';
+  aircraftSet.forEach(a=>{
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.innerText = a;
+    aircraftFilter.appendChild(opt);
+  });
+
+  const yearFilter = document.getElementById('yearFilter');
+  yearFilter.innerHTML = '<option value="">All Years</option>';
+  Array.from(yearSet).sort().forEach(y=>{
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.innerText = y;
+    yearFilter.appendChild(opt);
+  });
+}
+
+// Apply filters
+function applyFilters() {
+  const aircraft = document.getElementById('aircraftFilter').value;
+  const month = document.getElementById('monthFilter').value;
+  const year = document.getElementById('yearFilter').value;
+
+  filteredVideos = videos.filter(v=>{
+    const d = new Date(v.date);
+    if(aircraft && v.aircraft !== aircraft) return false;
+    if(month && d.getMonth() != month) return false;
+    if(year && d.getFullYear() != year) return false;
+    return true;
+  });
+
+  renderVideos();
+}
+
+// Reset filters
+function resetFilters() {
+  document.getElementById('aircraftFilter').value = '';
+  document.getElementById('monthFilter').value = '';
+  document.getElementById('yearFilter').value = '';
+  quickFilteredAircraft = "";
+  filteredVideos = [...videos];
+  renderVideos();
+}
+
+// Quick filter by clicking aircraft
+function quickFilterAircraft(name) {
+  if(quickFilteredAircraft === name){
+    quickFilteredAircraft = "";
+  } else {
+    quickFilteredAircraft = name;
+  }
+  document.getElementById('aircraftFilter').value = quickFilteredAircraft;
+  applyFilters();
+}
+
+// Render videos grouped by month/year
+function renderVideos() {
+  const container = document.getElementById('videoContainer');
+  container.innerHTML = '';
+
+  if(filteredVideos.length===0){
+    container.innerHTML = "<p>No videos found.</p>";
+    return;
+  }
+
+  const grouped = {};
+  filteredVideos.forEach(v=>{
+    const d = new Date(v.date);
+    const key = `${d.getMonth()}-${d.getFullYear()}`;
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push(v);
+  });
+
+  const monthKeys = Object.keys(grouped).sort((a,b)=>{
+    const [m1,y1] = a.split('-').map(Number);
+    const [m2,y2] = b.split('-').map(Number);
+    return new Date(y2,m2,1)-new Date(y1,m1,1);
+  });
+
+  monthKeys.forEach(key=>{
+    const [month, year] = key.split('-');
+    const monthName = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][month];
+
+    const monthDiv = document.createElement('div');
+    monthDiv.className = 'month-group';
+    monthDiv.innerHTML = `<h2>${monthName} ${year}</h2>`;
+
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Aircraft</th>
+          <th class="sortable" onclick="sortMonthTable('${key}')">
+            Date <span id="sortArrow-${key}">↓</span>
+          </th>
+          <th>Description</th>
+          <th>Watch</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${grouped[key].map(v=>{
+          const isHighlight = (v.highlighted === true || v.highlighted === 'true');
+          return `<tr class="${isHighlight ? 'highlight' : ''}">
+            <td class="aircraft-cell" onclick="quickFilterAircraft('${v.aircraft}')">${v.aircraft}</td>
+            <td>${formatDate(v.date)}</td>
+            <td>${v.description}</td>
+            <td><button onclick="window.open('${v.link}','_blank')">Watch</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    `;
+    monthDiv.appendChild(table);
+    container.appendChild(monthDiv);
+  });
+}
+
+// Sort within month table
+function sortMonthTable(monthKey) {
+  const table = Array.from(document.querySelectorAll('.month-group')).find(div=>{
+    return div.querySelector('h2').innerText.includes(monthKey.split('-')[1]);
+  })?.querySelector('table tbody');
+
+  if(!table) return;
+
+  let rows = Array.from(table.querySelectorAll('tr'));
+  monthSortStates[monthKey] = !monthSortStates[monthKey];
+  const ascending = monthSortStates[monthKey];
+
+  rows.sort((a,b)=>{
+    const dateA = new Date(a.cells[1].innerText);
+    const dateB = new Date(b.cells[1].innerText);
+    return ascending ? dateA - dateB : dateB - dateA;
+  });
+
+  rows.forEach(r=>table.appendChild(r));
+  const arrow = document.getElementById(`sortArrow-${monthKey}`);
+  if(arrow) arrow.innerText = ascending ? '↑' : '↓';
+}
+
+loadVideos();
+</script>
+
+<!-- Top-center bouncing signature -->
+<p style="
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+  font-size: 16px;
+  color: #0072ff;
+  animation: bounce 2s infinite;
+  margin: 0;
+">
+  Made By Capt Fahad ✈ | Powered By AI 💻
+</p>
+
+<style>
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
+}
+</style>
+
+<!-- Bottom-left glowing fixed AI text -->
+<p id="bottomAI">Capt Fahad AI Master 💻</p>
+
+</body>
+</html>
