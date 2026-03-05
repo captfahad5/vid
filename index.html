@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Highlight Pulse Test with Border</title>
+  <title>Highlight Pulse Test Fixed Borders</title>
   <style>
     table { width: 60%; margin: 50px auto; border-collapse: collapse; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
 
-    /* Highlighted row with slow pulsing */
-    .highlight { 
+    /* Highlighted row with slow pulsing on cells */
+    .highlight td { 
       background: #fff7c0; /* base yellow */
       border: 2px solid gold;
       font-weight: bold;
@@ -16,9 +16,9 @@
     }
 
     /* Hover effect */
-    .highlight:hover { transform: scale(1.02); }
+    .highlight:hover td { transform: scale(1.02); }
 
-    /* Keyframes for background + border pulse */
+    /* Keyframes for smooth pulse of background and border */
     @keyframes pulseHighlight {
       0% { 
         background-color: #fff7c0; 
@@ -27,7 +27,7 @@
       }
       50% { 
         background-color: #ffffff; 
-        border-color: #ffd700; /* slightly brighter gold */
+        border-color: #ffd700; /* brighter gold */
         box-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
       }
       100% { 
