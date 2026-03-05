@@ -6,7 +6,7 @@
     body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #f4f6f9, #e8edf3);}
     h1 { text-align: center; }
     .filters { display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 20px; }
-    .filters div { display:flex; gap:10px; flex-wrap:wrap; }
+    .filters div { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     select, input, button { padding:5px; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; background:white; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
@@ -14,7 +14,7 @@
     th.sortable { cursor:pointer; }
     .month-group { margin-top: 30px; }
     button { cursor:pointer; }
-    td.aircraft-cell { cursor:pointer; color: blue; text-decoration: underline; }
+    td.aircraft-cell { cursor: pointer; color: blue; text-decoration: underline; }
 
     /* Highlight special videos with glowing gold effect */
     .highlight { 
@@ -29,26 +29,6 @@
     .highlight:hover {
       box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.6);
       transform: scale(1.02);
-    }
-
-    /* Bottom-left fixed AI text with glowing pulse */
-    #bottomAI {
-      position: fixed;
-      bottom: 10px;
-      left: 20px;
-      font-size: 12px;
-      font-style: italic;
-      color: #555;
-      margin: 0;
-      transition: all 0.6s ease;
-      animation: glowPulse 2s infinite alternate;
-      z-index: 1000;
-    }
-
-    @keyframes glowPulse {
-      0% { text-shadow: 0 0 2px rgba(255, 215, 0, 0.4); }
-      50% { text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); }
-      100% { text-shadow: 0 0 2px rgba(255, 215, 0, 0.4); }
     }
   </style>
 </head>
@@ -79,10 +59,12 @@
     <select id="yearFilter">
       <option value="">All Years</option>
     </select>
+    <label>
+      <input type="checkbox" id="highlightFilter"> Show Only Highlighted
+    </label>
     <button onclick="applyFilters()">Apply Filters</button>
     <button onclick="resetFilters()">Reset</button>
   </div>
-
   <div>
     <button onclick="reloadVideos()">🔄 Refresh</button>
   </div>
@@ -98,6 +80,7 @@ let filteredVideos = [];
 let quickFilteredAircraft = "";
 const monthSortStates = {};
 
+// Format date as DD-MMM-YYYY
 function formatDate(dateStr) {
   const d = new Date(dateStr);
   const day = String(d.getDate()).padStart(2,'0');
@@ -107,9 +90,9 @@ function formatDate(dateStr) {
   return `${day}-${month}-${year}`;
 }
 
-// Load videos from JSON with cache-busting
+// Load videos from JSON
 function loadVideos() {
-  fetch('videos.json?' + new Date().getTime())
+  fetch('videos.json')
     .then(res => res.json())
     .then(data => {
       videos = data;
@@ -120,7 +103,7 @@ function loadVideos() {
     .catch(err => console.error("Failed to load videos:", err));
 }
 
-// Refresh button fetch with cache-busting
+// Reload JSON with cache-buster
 function reloadVideos() {
   fetch('videos.json?' + new Date().getTime())
     .then(res => res.json())
@@ -134,7 +117,7 @@ function reloadVideos() {
     .catch(err => console.error("Failed to reload videos:", err));
 }
 
-// Populate filter dropdowns
+// Populate Aircraft and Year filters
 function populateFilters() {
   const aircraftSet = new Set();
   const yearSet = new Set();
@@ -154,7 +137,7 @@ function populateFilters() {
 
   const yearFilter = document.getElementById('yearFilter');
   yearFilter.innerHTML = '<option value="">All Years</option>';
-  Array.from(yearSet).sort().forEach(y=>{
+  Array.from(yearSet).sort((a,b)=>b-a).forEach(y=>{
     const opt = document.createElement('option');
     opt.value = y;
     opt.innerText = y;
@@ -162,34 +145,37 @@ function populateFilters() {
   });
 }
 
-// Apply filters
+// Apply all filters including Highlight
 function applyFilters() {
   const aircraft = document.getElementById('aircraftFilter').value;
   const month = document.getElementById('monthFilter').value;
   const year = document.getElementById('yearFilter').value;
+  const highlightOnly = document.getElementById('highlightFilter').checked;
 
-  filteredVideos = videos.filter(v=>{
+  filteredVideos = videos.filter(v => {
     const d = new Date(v.date);
-    if(aircraft && v.aircraft !== aircraft) return false;
-    if(month && d.getMonth() != month) return false;
-    if(year && d.getFullYear() != year) return false;
+    if (aircraft && v.aircraft !== aircraft) return false;
+    if (month && d.getMonth() != month) return false;
+    if (year && d.getFullYear() != year) return false;
+    if (highlightOnly && !(v.highlighted === true || v.highlighted === 'true')) return false;
     return true;
   });
 
   renderVideos();
 }
 
-// Reset filters
+// Reset all filters
 function resetFilters() {
   document.getElementById('aircraftFilter').value = '';
   document.getElementById('monthFilter').value = '';
   document.getElementById('yearFilter').value = '';
+  document.getElementById('highlightFilter').checked = false;
   quickFilteredAircraft = "";
   filteredVideos = [...videos];
   renderVideos();
 }
 
-// Quick filter by clicking aircraft
+// Quick filter by clicking aircraft name in table
 function quickFilterAircraft(name) {
   if(quickFilteredAircraft === name){
     quickFilteredAircraft = "";
@@ -200,7 +186,7 @@ function quickFilterAircraft(name) {
   applyFilters();
 }
 
-// Render videos grouped by month/year
+// Render videos grouped by month & year
 function renderVideos() {
   const container = document.getElementById('videoContainer');
   container.innerHTML = '';
@@ -261,7 +247,7 @@ function renderVideos() {
   });
 }
 
-// Sort within month table
+// Sort individual month table by date
 function sortMonthTable(monthKey) {
   const table = Array.from(document.querySelectorAll('.month-group')).find(div=>{
     return div.querySelector('h2').innerText.includes(monthKey.split('-')[1]);
@@ -284,10 +270,11 @@ function sortMonthTable(monthKey) {
   if(arrow) arrow.innerText = ascending ? '↑' : '↓';
 }
 
+// Initial load
 loadVideos();
 </script>
 
-<!-- Top-center bouncing signature -->
+<!-- Top signature -->
 <p style="
   position: absolute;
   top: 10px;
@@ -309,8 +296,18 @@ loadVideos();
 }
 </style>
 
-<!-- Bottom-left glowing fixed AI text -->
-<p id="bottomAI">Capt Fahad AI Master 💻</p>
+<!-- Bottom signature -->
+<p style="
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+  font-size: 12px;
+  font-style: italic;
+  color: #555;
+  margin: 0;
+">
+ Capt Fahad AI Master 💻
+</p>
 
 </body>
 </html>
