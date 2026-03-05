@@ -1,124 +1,5 @@
 [
   {
-    "aircraft": "fdfgdfg",
-    "date": "2027-11-05",
-    "description": "dfgd",
-    "link": "dfg",
-    "highlighted": false
-  },
-  {
-    "aircraft": "asdasd",
-    "date": "2026-03-10",
-    "description": "asdasd",
-    "link": "asdas",
-    "highlighted": false
-  },
-  {
-    "aircraft": "asdasd",
-    "date": "2026-04-02",
-    "description": "asdasd",
-    "link": "asd",
-    "highlighted": false
-  },
-  {
-    "aircraft": "asdasd",
-    "date": "2026-03-20",
-    "description": "asdasd",
-    "link": "asdasd",
-    "highlighted": false
-  },
-  {
-    "aircraft": "asdasd",
-    "date": "2026-03-03",
-    "description": "asdasd",
-    "link": "asd",
-    "highlighted": false
-  },
-  {
-    "aircraft": "asdasd",
-    "date": "2026-03-19",
-    "description": "asdasd",
-    "link": "asd",
-    "highlighted": false
-  },
-  {
-    "aircraft": "asdasd",
-    "date": "2026-03-27",
-    "description": "asdasdas",
-    "link": "asdas",
-    "highlighted": false
-  },
-  {
-    "aircraft": "asdas",
-    "date": "2026-03-18",
-    "description": "asda",
-    "link": "asd",
-    "highlighted": false
-  },
-  {
-    "aircraft": "adsas",
-    "date": "2026-03-11",
-    "description": "asdas",
-    "link": "asd",
-    "highlighted": false
-  },
-  {
-    "aircraft": "sdfecvsd",
-    "date": "2026-03-04",
-    "description": "sdfe",
-    "link": "sdf",
-    "highlighted": false
-  },
-  {
-    "aircraft": "sdfef",
-    "date": "2026-03-17",
-    "description": "sdfsd",
-    "link": "se",
-    "highlighted": false
-  },
-  {
-    "aircraft": "sdfedf",
-    "date": "2026-03-10",
-    "description": "sdfefsd",
-    "link": "dfe",
-    "highlighted": true
-  },
-  {
-    "aircraft": "sdefsdsdf",
-    "date": "2026-03-09",
-    "description": "sdfsdf",
-    "link": "sdf",
-    "highlighted": false
-  },
-  {
-    "aircraft": "sdffsdfd",
-    "date": "2026-03-10",
-    "description": "sdfsd",
-    "link": "vdf",
-    "highlighted": false
-  },
-  {
-    "aircraft": "sdfs",
-    "date": "2026-03-20",
-    "description": "sdfds",
-    "link": "e",
-    "highlighted": false
-  },
-  {
-    "aircraft": "sdfdse",
-    "date": "2026-03-10",
-    "description": "sdfsdf",
-    "link": "s",
-    "highlighted": true
-  },
-  {
-    "aircraft": "ap=vsddf",
-    "date": "2026-03-12",
-    "description": "asdfsdf",
-    "link": "s",
-    "highlighted": false
-  },
-  {
     "aircraft": "AP-BHX",
     "date": "2026-03-05",
     "description": "TIME 5:30 AM (VIDEO WITH EDITING TIME REUIRED 4 HRS)",
@@ -130,7 +11,7 @@
     "date": "2026-03-04",
     "description": "TIME 11:00 AM (VIDEO WITH EDITING TIME REUIRED 3.5 HRS)\nREJECTED! DUE TO CABIN SETTING ABSENCE :(",
     "link": "https://drive.google.com/file/d/1I3PNN_s6Wwi7QMe1rczJp0W9VYKmEqp2/view?usp=drive_link",
-    "highlighted": true
+    "highlighted": false
   },
   {
     "aircraft": "AP-BON",
