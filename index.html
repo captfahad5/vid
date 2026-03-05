@@ -16,8 +16,13 @@
     button { cursor:pointer; }
     td.aircraft-cell { cursor:pointer; color: blue; text-decoration: underline; }
 
-    /* Highlight special videos */
-    .highlight { background: #fff7c0 !important; }
+    /* Highlight special videos with glowing gold effect */
+    .highlight { 
+      background: #fff7c0 !important; 
+      border: 2px solid gold;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -207,7 +212,9 @@ function renderVideos() {
       </thead>
       <tbody>
         ${grouped[key].map(v=>{
-          return `<tr class="${v.highlighted ? 'highlight' : ''}">
+          // ✅ robust check for boolean or string "true"
+          const isHighlight = (v.highlighted === true || v.highlighted === 'true');
+          return `<tr class="${isHighlight ? 'highlight' : ''}">
             <td class="aircraft-cell" onclick="quickFilterAircraft('${v.aircraft}')">${v.aircraft}</td>
             <td>${formatDate(v.date)}</td>
             <td>${v.description}</td>
