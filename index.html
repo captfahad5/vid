@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Highlight Pulse Test</title>
+  <title>Highlight Pulse Test with Border</title>
   <style>
     table { width: 60%; margin: 50px auto; border-collapse: collapse; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
@@ -10,7 +10,6 @@
     .highlight { 
       background: #fff7c0; /* base yellow */
       border: 2px solid gold;
-      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
       font-weight: bold;
       animation: pulseHighlight 2.5s ease-in-out infinite;
       transition: transform 0.3s ease;
@@ -19,10 +18,23 @@
     /* Hover effect */
     .highlight:hover { transform: scale(1.02); }
 
+    /* Keyframes for background + border pulse */
     @keyframes pulseHighlight {
-      0% { background-color: #fff7c0; }
-      50% { background-color: #ffffff; }
-      100% { background-color: #fff7c0; }
+      0% { 
+        background-color: #fff7c0; 
+        border-color: gold; 
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+      }
+      50% { 
+        background-color: #ffffff; 
+        border-color: #ffd700; /* slightly brighter gold */
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
+      }
+      100% { 
+        background-color: #fff7c0; 
+        border-color: gold; 
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+      }
     }
   </style>
 </head>
