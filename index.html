@@ -3,7 +3,7 @@
 <head>
   <title>Aircraft Videos</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #f4f6f9, #e8edf3);}
+    body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #f4f6f9, #e8edf3); }
     h1 { text-align: center; }
     .filters { display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 20px; }
     .filters div { display:flex; gap:10px; flex-wrap:wrap; }
@@ -16,19 +16,17 @@
     button { cursor:pointer; }
     td.aircraft-cell { cursor:pointer; color: blue; text-decoration: underline; }
 
-    /* Highlight special videos with glowing gold effect */
-    .highlight { 
-      background: #fff7c0 !important; 
-      border: 2px solid gold;
-      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    /* Highlighted videos with slow pulsing orange background */
+    .highlight td { 
+      background: #ffa500; /* base orange */
       font-weight: bold;
-      transition: box-shadow 0.5s ease, transform 0.3s ease;
+      animation: pulseHighlight 4s ease-in-out infinite; /* 4-second pulse */
     }
 
-    /* Hover pulse effect for highlighted rows */
-    .highlight:hover {
-      box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.6);
-      transform: scale(1.02);
+    @keyframes pulseHighlight {
+      0% { background-color: #ffa500; }
+      50% { background-color: #ffffff; }
+      100% { background-color: #ffa500; }
     }
   </style>
 </head>
@@ -61,6 +59,7 @@
     </select>
     <button onclick="applyFilters()">Apply Filters</button>
     <button onclick="resetFilters()">Reset</button>
+    <button onclick="filterHighlighted()">Highlighted</button>
   </div>
 
   <div>
@@ -77,6 +76,7 @@ let videos = [];
 let filteredVideos = [];
 let quickFilteredAircraft = "";
 const monthSortStates = {};
+let showOnlyHighlighted = false; // toggle flag
 
 function formatDate(dateStr) {
   const d = new Date(dateStr);
@@ -152,6 +152,10 @@ function applyFilters() {
     return true;
   });
 
+  if(showOnlyHighlighted){
+    filteredVideos = filteredVideos.filter(v => v.highlighted === true || v.highlighted === 'true');
+  }
+
   renderVideos();
 }
 
@@ -160,8 +164,14 @@ function resetFilters() {
   document.getElementById('monthFilter').value = '';
   document.getElementById('yearFilter').value = '';
   quickFilteredAircraft = "";
+  showOnlyHighlighted = false;
   filteredVideos = [...videos];
   renderVideos();
+}
+
+function filterHighlighted() {
+  showOnlyHighlighted = !showOnlyHighlighted; // toggle state
+  applyFilters(); // reapply filters with toggle
 }
 
 function quickFilterAircraft(name) {
@@ -281,13 +291,14 @@ loadVideos();
 </style>
 
 <p style="
-  position: absolute;
+  position: fixed;
   bottom: 10px;
   left: 20px;
   font-size: 12px;
   font-style: italic;
   color: #555;
   margin: 0;
+  z-index: 9999;
 ">
  Capt Fahad AI Master 💻
 </p>
