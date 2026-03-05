@@ -307,16 +307,28 @@ loadVideos();
   position: fixed;
   top: 10px;
   left: 20px;
-  font-size: 12px;
-  font-style: italic;
-  color: #555;
+  font-size: 13px;
+  font-style: normal;
+  color: white;
+  font-weight: bold;
   margin: 0;
   z-index: 9999;
   line-height: 1.4;
+  background: rgba(0,0,0,0.5);
+  padding: 6px 12px;
+  border-radius: 6px;
 ">
-  🟢 Server 42055 online!<br>
-  📡 Managed & Monitored By Lucy AI Agent!
+  <span style="display:inline-block; animation:pulse 2s infinite;">🟢</span>
+  Server 42055 online!<br>
+  💻 Managed & Monitored By 📡⚡ Lucy AI Agent!
 </p>
+
+<style>
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+</style>
 
 </body>
 </html>
