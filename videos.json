@@ -1,5 +1,19 @@
 [
   {
+    "aircraft": "AP-BGY",
+    "date": "2025-12-16",
+    "description": "City Of Toronto Project TIME 4:30 AM (VIDEO WITH EDITING TIME REUIRED 6 HRS)",
+    "link": "https://youtu.be/IdGUp9Joioc",
+    "highlighted": false
+  },
+  {
+    "aircraft": "AP-BHX",
+    "date": "2025-12-19",
+    "description": "City Of Paris Project TIME 5:30 AM (VIDEO WITH EDITING TIME REUIRED 5.3 HRS)",
+    "link": "https://youtu.be/d_Q9l1GCS3k",
+    "highlighted": false
+  },
+  {
     "aircraft": "Upholster Shop",
     "date": "2026-01-28",
     "description": "TIME 11 AM (VIDEO WITH EDITING TIME REUIRED 1.2 HRS)",
