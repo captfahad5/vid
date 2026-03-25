@@ -1,232 +1,339 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Support & Resistance Tracker (Read-Only)</title>
-
-<style>
-    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 20px; }
+  <title>Cabin Maintenance Video Portal</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: linear-gradient(135deg, #f4f6f9, #e8edf3); }
     h1 { text-align: center; }
-    table { border-collapse: collapse; width: 100%; background: white; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    th { background: #222; color: white; }
-    .price { font-weight: bold; }
-    .support-status, .resistance-status { font-weight: bold; transition: 0.3s; }
-    /* Support Colors */
-    .status-on { background-color: #4CAF50; color: white; }          /* ON / BELOW SUPPORT → green */
-    .status-near { background-color: #FFFF00; color: black; }       /* NEAR SUPPORT ≤3% → yellow */
-    .status-approaching { background-color: #9C27B0; color: white; }/* APPROACHING SUPPORT ≤6% → purple */
-    /* Resistance Colors */
-    .resistance-on { background-color: #F44336; color: white; }     /* ON / ABOVE RESISTANCE → red */
-    .resistance-near { background-color: #FFC107; color: black; }   /* NEAR RESISTANCE ≤3% → amber */
-    .resistance-approaching { background-color: #9C27B0; color: white; } /* APPROACHING RESISTANCE ≤6% → purple */
-    .heading-row td { background-color: #ddd; font-weight: bold; text-align: left; padding-left: 10px; }
-    /* Legend Styles */
-    .legend { display: flex; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; }
-    .legend-item { padding: 3px 6px; margin: 2px; font-weight: bold; border-radius: 3px; }
-    .legend-support-on { background-color: #4CAF50; color: white; }
-    .legend-support-near { background-color: #FFFF00; color: black; }
-    .legend-support-approaching { background-color: #9C27B0; color: white; }
-    .legend-resistance-on { background-color: #F44336; color: white; }
-    .legend-resistance-near { background-color: #FFC107; color: black; }
-    .legend-resistance-approaching { background-color: #9C27B0; color: white; }
-    /* Banner Animation */
-    .animated-banner {
-        text-align: center;
-        font-weight: bold;
-        color: #1E90FF;
-        font-size: 18px;
-        margin: 10px auto 10px auto;
-        display: block;
-        animation: bounce 1.5s infinite;
-    }
-    @keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-5px); }
-    }
-</style>
-</head>
+    .filters { display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom: 20px; }
+    .filters div { display:flex; gap:10px; flex-wrap:wrap; }
+    select, input, button { padding:5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background:white; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #007bff; color: white; }
+    th.sortable { cursor:pointer; }
+    .month-group { margin-top: 30px; }
+    button { cursor:pointer; }
+    td.aircraft-cell { cursor:pointer; color: blue; text-decoration: underline; }
 
+    /* Highlighted videos with slow pulsing orange background */
+    .highlight td { 
+      background: #ffa500; /* base orange */
+      font-weight: bold;
+      animation: pulseHighlight 2.5s ease-in-out infinite; /* 4-second pulse */
+    }
+
+    @keyframes pulseHighlight {
+      0% { background-color: #ffa500; }
+      50% { background-color: #ffffff; }
+      100% { background-color: #ffa500; }
+    }
+  </style>
+</head>
 <body>
 
-<h1>Crypto Support & Resistance Tracker (Read-Only)</h1>
+<h1>✈ Cabin Maintenance Video Portal</h1>
 
-<div class="animated-banner">
-  Made By Capt Fahad ✈ | Powered By AI 💻
+<div class="filters">
+  <div>
+    <select id="aircraftFilter">
+      <option value="">All Aircraft</option>
+    </select>
+    <select id="monthFilter">
+      <option value="">All Months</option>
+      <option value="0">January</option>
+      <option value="1">February</option>
+      <option value="2">March</option>
+      <option value="3">April</option>
+      <option value="4">May</option>
+      <option value="5">June</option>
+      <option value="6">July</option>
+      <option value="7">August</option>
+      <option value="8">September</option>
+      <option value="9">October</option>
+      <option value="10">November</option>
+      <option value="11">December</option>
+    </select>
+    <select id="yearFilter">
+      <option value="">All Years</option>
+    </select>
+    <button onclick="applyFilters()">Apply Filters</button>
+    <button onclick="resetFilters()">Reset</button>
+    <button onclick="filterHighlighted()">Premium Videos!</button>
+  </div>
+
+  <div>
+    <button onclick="reloadVideos()">🔄 Refresh</button>
+  </div>
 </div>
 
-<!-- Status Color Legend -->
-<div class="legend">
-    <div class="legend-item legend-support-on">ON / BELOW SUPPORT (Green)</div>
-    <div class="legend-item legend-support-near">NEAR SUPPORT ≤3% (Yellow)</div>
-    <div class="legend-item legend-support-approaching">APPROACHING SUPPORT ≤6% (Purple)</div>
-    <div class="legend-item legend-resistance-on">ON / ABOVE RESISTANCE (Red)</div>
-    <div class="legend-item legend-resistance-near">NEAR RESISTANCE ≤3% (Amber)</div>
-    <div class="legend-item legend-resistance-approaching">APPROACHING RESISTANCE ≤6% (Purple)</div>
+<div id="videoContainer">
+  <!-- Videos will appear here grouped by month -->
 </div>
-
-<div style="text-align:center;">
-    <button onclick="updatePrices()">Refresh Prices</button>
-</div>
-
-<table id="cryptoTable">
-    <thead>
-        <tr>
-            <th>Coin (CoinGecko ID)</th>
-            <th>Current Price (Auto)</th>
-            <th>Support Status</th>
-            <th>Resistance Status</th>
-            <th>Supports</th>
-            <th>Resistances</th>
-        </tr>
-    </thead>
-    <tbody>
-        <!-- JSON data will populate here -->
-    </tbody>
-</table>
 
 <script>
-// ----------------- Fetch Prices -----------------
-async function getAllPrices(coins) {
-    try {
-        const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coins.join(',')}&vs_currencies=usd`);
-        if (!response.ok) throw new Error("API error");
-        return await response.json();
-    } catch (err) {
-        console.error("CoinGecko API fetch failed:", err);
-        return null;
-    }
+let videos = [];
+let filteredVideos = [];
+let quickFilteredAircraft = "";
+const monthSortStates = {};
+let showOnlyHighlighted = false; // toggle flag
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2,'0');
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const month = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
 }
 
-// ----------------- Helper Functions -----------------
-function findNearestLevel(price, levels) {
-    if (!levels.length) return null;
-    let nearest = null;
-    levels.forEach(level => {
-        if (nearest === null || Math.abs(price - level) < Math.abs(price - nearest)) nearest = level;
-    });
-    return nearest;
+function loadVideos() {
+  fetch('videos.json')
+    .then(res => res.json())
+    .then(data => {
+      videos = data;
+      filteredVideos = [...videos];
+      populateFilters();
+      renderVideos();
+    })
+    .catch(err => console.error("Failed to load videos:", err));
 }
 
-function calculateSupportStatus(price, supports) {
-    const nearest = findNearestLevel(price, supports);
-    if (nearest === null) return { text: "No Supports", class: "" };
-    const diffPercent = Math.abs(price - nearest)/nearest*100;
-    if (price <= nearest) return { text: "ON / BELOW SUPPORT", class: "status-on" };
-    if (diffPercent <= 3) return { text: "NEAR SUPPORT", class: "status-near" };
-    if (diffPercent <= 6) return { text: "APPROACHING SUPPORT", class: "status-approaching" };
-    return { text: "FAR FROM SUPPORT", class: "" };
+function reloadVideos() {
+  fetch('videos.json?' + new Date().getTime())
+    .then(res => res.json())
+    .then(data => {
+      videos = data;
+      filteredVideos = [...videos];
+      populateFilters();
+      renderVideos();
+      console.log("Videos refreshed!");
+    })
+    .catch(err => console.error("Failed to reload videos:", err));
 }
 
-function calculateResistanceStatus(price, resistances) {
-    const nearest = findNearestLevel(price, resistances);
-    if (nearest === null) return { text: "No Resistances", class: "" };
-    const diffPercent = Math.abs(price - nearest)/nearest*100;
-    if (price >= nearest) return { text: "ON / ABOVE RESISTANCE", class: "resistance-on" };
-    if (diffPercent <= 3) return { text: "NEAR RESISTANCE", class: "resistance-near" };
-    if (diffPercent <= 6) return { text: "APPROACHING RESISTANCE", class: "resistance-approaching" };
-    return { text: "FAR FROM RESISTANCE", class: "" };
+function populateFilters() {
+  const aircraftSet = new Set();
+  const yearSet = new Set();
+  videos.forEach(v=>{
+    aircraftSet.add(v.aircraft);
+    yearSet.add(new Date(v.date).getFullYear());
+  });
+
+  const aircraftFilter = document.getElementById('aircraftFilter');
+  aircraftFilter.innerHTML = '<option value="">All Aircraft</option>';
+  aircraftSet.forEach(a=>{
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.innerText = a;
+    aircraftFilter.appendChild(opt);
+  });
+
+  const yearFilter = document.getElementById('yearFilter');
+  yearFilter.innerHTML = '<option value="">All Years</option>';
+  Array.from(yearSet).sort().forEach(y=>{
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.innerText = y;
+    yearFilter.appendChild(opt);
+  });
 }
 
-// ----------------- Populate Table -----------------
-async function importJSONFromGitHub() {
-    const url = "https://raw.githubusercontent.com/captfahad5/ct/main/crypto_levels.json";
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        populateTableFromJSON(data);
-    } catch(err) {
-        console.warn("Failed to fetch JSON, loading fallback row.", err);
-        populateTableFromJSON([
-            { type: "heading", name: "Top Coins" },
-            { type: "coin", coin: "bitcoin", supports: "65000,60000,52000", resistances: "70000,75000" }
-        ]);
-    }
+function applyFilters() {
+  const aircraft = document.getElementById('aircraftFilter').value;
+  const month = document.getElementById('monthFilter').value;
+  const year = document.getElementById('yearFilter').value;
+
+  filteredVideos = videos.filter(v=>{
+    const d = new Date(v.date);
+    if(aircraft && v.aircraft !== aircraft) return false;
+    if(month && d.getMonth() != month) return false;
+    if(year && d.getFullYear() != year) return false;
+    return true;
+  });
+
+  if(showOnlyHighlighted){
+    filteredVideos = filteredVideos.filter(v => v.highlighted === true || v.highlighted === 'true');
+  }
+
+  renderVideos();
 }
 
-function populateTableFromJSON(data) {
-    const table = document.getElementById("cryptoTable").getElementsByTagName('tbody')[0];
-    table.innerHTML = "";
-    data.forEach(item => {
-        if (item.type === "heading") {
-            const headingRow = table.insertRow();
-            const cell = headingRow.insertCell(0);
-            cell.colSpan = 6;
-            cell.innerText = item.name;
-            headingRow.className = "heading-row";
-        } else if (item.type === "coin") {
-            const row = table.insertRow();
-            row.innerHTML = `
-                <td>${item.coin}</td>
-                <td class="price">-</td>
-                <td class="support-status">Waiting...</td>
-                <td class="resistance-status">Waiting...</td>
-                <td>${item.supports}</td>
-                <td>${item.resistances}</td>
-            `;
-        }
-    });
-    updatePrices();
+function resetFilters() {
+  document.getElementById('aircraftFilter').value = '';
+  document.getElementById('monthFilter').value = '';
+  document.getElementById('yearFilter').value = '';
+  quickFilteredAircraft = "";
+  showOnlyHighlighted = false;
+  filteredVideos = [...videos];
+  renderVideos();
 }
 
-// ----------------- Update Prices -----------------
-async function updatePrices() {
-    const table = document.getElementById("cryptoTable").getElementsByTagName('tbody')[0];
-    const rows = table.rows;
-    const coins = [];
-    for (let row of rows) {
-        if (row.classList.contains("heading-row")) continue;
-        coins.push(row.cells[0].innerText.trim().toLowerCase());
-    }
-    if (!coins.length) return;
-
-    let pricesData = await getAllPrices(coins);
-    if (!pricesData) {
-        console.log("Retrying CoinGecko API in 3s...");
-        await new Promise(r => setTimeout(r, 3000));
-        pricesData = await getAllPrices(coins);
-    }
-
-    for (let row of rows) {
-        if (row.classList.contains("heading-row")) continue;
-
-        const coin = row.cells[0].innerText.trim().toLowerCase();
-        const supports = row.cells[4].innerText.split(',').map(s => parseFloat(s.trim())).filter(s => !isNaN(s));
-        const resistances = row.cells[5].innerText.split(',').map(r => parseFloat(r.trim())).filter(r => !isNaN(r));
-
-        const priceCell = row.cells[1];
-        const supportCell = row.cells[2];
-        const resistanceCell = row.cells[3];
-
-        if (!pricesData || !pricesData[coin]) {
-            priceCell.innerText = "API Error / Invalid Coin";
-            supportCell.innerText = "-";
-            resistanceCell.innerText = "-";
-            continue;
-        }
-
-        const price = pricesData[coin].usd;
-        priceCell.innerText = price.toLocaleString();
-
-        const supportStatus = calculateSupportStatus(price, supports);
-        supportCell.innerText = supportStatus.text;
-        supportCell.className = "support-status";
-        if (supportStatus.class) supportCell.classList.add(supportStatus.class);
-
-        const resistanceStatus = calculateResistanceStatus(price, resistances);
-        resistanceCell.innerText = resistanceStatus.text;
-        resistanceCell.className = "resistance-status";
-        if (resistanceStatus.class) resistanceCell.classList.add(resistanceStatus.class);
-    }
+function filterHighlighted() {
+  showOnlyHighlighted = !showOnlyHighlighted; // toggle state
+  applyFilters(); // reapply filters with toggle
 }
 
-// ----------------- Init -----------------
-window.addEventListener("load", () => {
-    importJSONFromGitHub();
-    setInterval(updatePrices, 120000); // refresh every 2 min
-});
+function quickFilterAircraft(name) {
+  if(quickFilteredAircraft === name){
+    quickFilteredAircraft = "";
+  } else {
+    quickFilteredAircraft = name;
+  }
+  document.getElementById('aircraftFilter').value = quickFilteredAircraft;
+  applyFilters();
+}
+
+function renderVideos() {
+  const container = document.getElementById('videoContainer');
+  container.innerHTML = '';
+
+  if(filteredVideos.length===0){
+    container.innerHTML = "<p>No videos found.</p>";
+    return;
+  }
+
+  const grouped = {};
+  filteredVideos.forEach(v=>{
+    const d = new Date(v.date);
+    const key = `${d.getMonth()}-${d.getFullYear()}`;
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push(v);
+  });
+
+  const monthKeys = Object.keys(grouped).sort((a,b)=>{
+    const [m1,y1] = a.split('-').map(Number);
+    const [m2,y2] = b.split('-').map(Number);
+    return new Date(y2,m2,1)-new Date(y1,m1,1);
+  });
+
+  monthKeys.forEach(key=>{
+    const [month, year] = key.split('-');
+    const monthName = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][month];
+
+    const monthDiv = document.createElement('div');
+    monthDiv.className = 'month-group';
+    monthDiv.innerHTML = `<h2>${monthName} ${year}</h2>`;
+
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Aircraft</th>
+          <th class="sortable" onclick="sortMonthTable('${key}')">
+            Date <span id="sortArrow-${key}">↓</span>
+          </th>
+          <th>Description</th>
+          <th>Watch</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${grouped[key].map(v=>{
+          const isHighlight = (v.highlighted === true || v.highlighted === 'true');
+          return `<tr class="${isHighlight ? 'highlight' : ''}">
+            <td class="aircraft-cell" onclick="quickFilterAircraft('${v.aircraft}')">${v.aircraft}</td>
+            <td>${formatDate(v.date)}</td>
+            <td>${v.description}</td>
+            <td><button onclick="window.open('${v.link}','_blank')">Watch</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    `;
+    monthDiv.appendChild(table);
+    container.appendChild(monthDiv);
+  });
+}
+
+function sortMonthTable(monthKey) {
+  const table = Array.from(document.querySelectorAll('.month-group')).find(div=>{
+    return div.querySelector('h2').innerText.includes(monthKey.split('-')[1]);
+  })?.querySelector('table tbody');
+
+  if(!table) return;
+
+  let rows = Array.from(table.querySelectorAll('tr'));
+  monthSortStates[monthKey] = !monthSortStates[monthKey];
+  const ascending = monthSortStates[monthKey];
+
+  rows.sort((a,b)=>{
+    const dateA = new Date(a.cells[1].innerText);
+    const dateB = new Date(b.cells[1].innerText);
+    return ascending ? dateA - dateB : dateB - dateA;
+  });
+
+  rows.forEach(r=>table.appendChild(r));
+  const arrow = document.getElementById(`sortArrow-${monthKey}`);
+  if(arrow) arrow.innerText = ascending ? '↑' : '↓';
+}
+
+loadVideos();
 </script>
+
+<p style="
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+  font-size: 16px;
+  color: #0072ff;
+  animation: bounce 2s infinite;
+  margin: 0;
+">
+  Made By Capt Fahad ✈ | Powered By AI 💻
+</p>
+
+<style>
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
+}
+</style>
+
+<p style="
+  position: fixed;
+  bottom: 10px;
+  left: 20px;
+  font-size: 12px;
+  font-style: italic;
+  color: #555;
+  margin: 0;
+  z-index: 9999;
+">
+ Capt Fahad AI Master 💻
+</p>
+
+<p style="
+  position: fixed;
+  top: 10px;
+  left: 20px;
+  font-size: 13px;
+  font-style: normal;
+  color: white;
+  font-weight: bold;
+  margin: 0;
+  z-index: 9999;
+  line-height: 1.4;
+  background: rgba(0,0,0,0.5);
+  padding: 6px 12px;
+  border-radius: 6px;
+">
+  <span style="display:inline-block; animation:pulse 2s infinite;">🟢</span>
+  Server VentureDive 42055 online!<br>
+  💻 Managed & Monitored By 📡 Lucy AI Agent!<br>
+</p>
+
+<style>
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+</style>
 
 </body>
 </html>
+
+
+
+
+
