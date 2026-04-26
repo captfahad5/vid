@@ -15,9 +15,15 @@
     .month-group { margin-top: 30px; }
     button { cursor:pointer; }
     td.aircraft-cell { cursor:pointer; color: blue; text-decoration: underline; }
+    .video-count {
+      text-align: center;
+      font-weight: bold;
+      color: #0a4da3;
+      margin: 10px 0 20px;
+    }
 
     /* Highlighted videos with slow pulsing orange background */
-    .highlight td { 
+    .highlight td {
       background: #ffa500; /* base orange */
       font-weight: bold;
       animation: pulseHighlight 2.5s ease-in-out infinite; /* 4-second pulse */
@@ -67,6 +73,8 @@
   </div>
 </div>
 
+<div id="videoCount" class="video-count"></div>
+
 <div id="videoContainer">
   <!-- Videos will appear here grouped by month -->
 </div>
@@ -85,6 +93,11 @@ function formatDate(dateStr) {
   const month = monthNames[d.getMonth()];
   const year = d.getFullYear();
   return `${day}-${month}-${year}`;
+}
+
+function updateVideoCount() {
+  const countEl = document.getElementById('videoCount');
+  countEl.innerText = `Showing ${filteredVideos.length} of ${videos.length} video(s)`;
 }
 
 function loadVideos() {
@@ -187,6 +200,7 @@ function quickFilterAircraft(name) {
 function renderVideos() {
   const container = document.getElementById('videoContainer');
   container.innerHTML = '';
+  updateVideoCount();
 
   if(filteredVideos.length===0){
     container.innerHTML = "<p>No videos found.</p>";
@@ -332,8 +346,3 @@ loadVideos();
 
 </body>
 </html>
-
-
-
-
-
